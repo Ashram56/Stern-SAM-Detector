@@ -21,7 +21,6 @@
 // frequency.
 
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
@@ -136,7 +135,6 @@ void setup() {
 void loop() {
   ws2812fx.service();
 
-  stdio_init_all();
     printf("PIO logic analyser example\n");
 
     // We're going to capture into a u32 buffer, for best DMA efficiency. Need
