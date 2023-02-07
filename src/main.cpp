@@ -98,20 +98,20 @@ void print_capture_buf(const uint32_t *buf, uint pin_base, uint pin_count, uint3
     // Display the capture buffer in text form, like this:
     // 00: __--__--__--__--__--__--
     // 01: ____----____----____----
-    printf("Capture:\n");
+    Serial.println("Capture:");
     // Each FIFO record may be only partially filled with bits, depending on
     // whether pin_count is a factor of 32.
     uint record_size_bits = bits_packed_per_word(pin_count);
     for (int pin = 0; pin < pin_count; ++pin) {
-        printf("%02d: ", pin + pin_base);
+        Serial.print(pin + pin_base);
         for (int sample = 0; sample < n_samples; ++sample) {
             uint bit_index = pin + sample * pin_count;
             uint word_index = bit_index / record_size_bits;
             // Data is left-justified in each FIFO entry, hence the (32 - record_size_bits) offset
             uint word_mask = 1u << (bit_index % record_size_bits + 32 - record_size_bits);
-            printf(buf[word_index] & word_mask ? "-" : "_");
+            Serial.print(buf[word_index] & word_mask ? "-" : "_");
         }
-        printf("\n");
+        Serial.println();
     }
 }
 
@@ -133,9 +133,9 @@ void setup() {
 // the loop function runs over and over again forever
 
 void loop() {
-  ws2812fx.service();
+    ws2812fx.service();
 
-    printf("PIO logic analyser example\n");
+    Serial.println("PIO logic analyser example");
 
     // We're going to capture into a u32 buffer, for best DMA efficiency. Need
     // to be careful of rounding in case the number of pins being sampled
@@ -162,10 +162,10 @@ void loop() {
 
     logic_analyser_init(pio, sm, CAPTURE_PIN_BASE, CAPTURE_PIN_COUNT, 1.f);
 
-    printf("Arming trigger\n");
+    Serial.println("Arming trigger");
     logic_analyser_arm(pio, sm, dma_chan, capture_buf, buf_size_words, CAPTURE_PIN_ARM, CAPTURE_POLARITY);
 
-    printf("Starting capture \n");
+    Serial.println("Starting capture");
     
     // The logic analyser should have started capturing as soon as it saw the
     // first transition. Wait until the last sample comes in from the DMA.
