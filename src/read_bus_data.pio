@@ -1,0 +1,52 @@
+;***********************************************************************
+;*  STERN SAM DETECTOR
+;*
+;***********************************************************************
+;*  This file is part of the Stern SAM Detector project:
+;*  https://github.com/Ashram56/Stern-SAM-Detector
+;*
+;*  Stern SAM Detector  is free software: you can redistribute it and/or modify
+;*  it under the terms of the GNU Lesser General Public License as
+;*  published by the Free Software Foundation, either version 3 of the
+;*  License, or (at your option) any later version.
+;*
+;*  STERN SAM DETECTOR is distributed in the hope that it will be useful,
+;*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;*  GNU Lesser General Public License for more details.
+;*
+;*  You should have received a copy of the GNU Lesser General Public
+;*  License along with STERN SAM DETECTOR.
+;*  If not, see <http://www.gnu.org/licenses/>.
+;***********************************************************************
+
+; On Rev 1 of Stern SAM Detector PCB, _IOSTB signal is pin 15
+; polarity is active low
+
+
+.program read_bus_data
+.wrap_target
+    wait 1 pin 15 [20]     ; wait for IOSTB signal to go high (plus some debouncing)
+    wait 0 pin 15          ; wait for the falling  edge
+    in pins 8            ; read all pins
+    push [8]             ; push the data to the FIFO (plus some debouncing)
+.wrap                     ; there's no stopping!
+
+% c-sdk {
+// this is a raw helper function for use by the user which sets up the GPIO output, and configures the SM to output on a particular pin
+
+void read_bus_data_program_init(PIO pio, uint sm, uint offset, uint pin)
+{
+    //  pins 0-8 are input
+    pio_sm_set_consecutive_pindirs(pio, sm, 0, 8, false);
+
+    // configure the state machine
+    pio_sm_config c = read_bus_data_program_get_default_config(offset);
+    sm_config_set_in_pins(&c, pin);  // pin 15 is the trigger IOSTB signal
+    sm_config_set_in_shift(&c, false, false, 32);
+
+    // initialize and enable the state machine
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}
