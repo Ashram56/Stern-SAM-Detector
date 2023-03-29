@@ -47,11 +47,12 @@ static PIO sPioReadData = pio0;
 
 static int sSmRead = -1;
 static int sSmReadBusOffset = -1;
-static uint32_t sBusData = 0 ;
-static uint8_t numBusData = 0;
 
-static bool noBusData = false;
+static uint8_t numBusData = 0;
 static uint32_t bus_data = 0;
+
+static uint8_t data = 0;
+static uint8_t adress = 0;
 
 static char msg[32];
 
@@ -73,19 +74,19 @@ bool pio_init()
 uint32_t pio_read_bus_data()
 {
     // Process all new data
-       
-    while (!noBusData)
-    {
-        // Check for new bus  data
-        if (sSmRead != -1)
+    
+    bool noBusData = false;
+    uint32_t sBusData = 1 ;
+
+
+    if (sSmRead != -1)
         {
-            noBusData = pio_sm_is_rx_fifo_empty(sPioReadData, sSmRead);
-            if (!noBusData)
-            {
-                sBusData = pio_sm_get(sPioReadData, sSmRead);
-            }
+            // noBusData = pio_sm_is_rx_fifo_empty(sPioReadData, sSmRead);
+
+            sBusData = pio_sm_get_blocking(sPioReadData, sSmRead);
+
         }
-    }
+        
     return (sBusData);
 }
 
@@ -102,6 +103,7 @@ void panic_mode()
 void sam_init()
 {
     Serial.printf("SAM Detector \n", SAM_DETECTOR_VERSION);
+    
 }
 
 uint32_t sam_process_data() {
@@ -114,7 +116,7 @@ uint32_t sam_process_data() {
 
 void setup() {
 
-    Serial.begin(115200);
+    Serial.begin(400000);
 
     ws2812fx.init();
     ws2812fx.setBrightness(100);
@@ -142,19 +144,20 @@ void setup() {
 
 void loop() {
     
-        // every device needs a blinking LED
-        gpio_put(PICO_DEFAULT_LED_PIN, 1);
-        sleep_ms(100);
-        gpio_put(PICO_DEFAULT_LED_PIN, 0);
-        sleep_ms(100);
+    bus_data = sam_process_data();
 
-        bus_data = sam_process_data();
+    data = bus_data & 0xFF;
+    adress = (bus_data >> 26) & 0xF;
 
-        Serial.printf("\nBus data=");
-        sprintf(msg,"%ld",bus_data);
-        Serial.printf(msg);
-
-        ws2812fx.service();
+    if (bus_data != 1)
+        {
+        Serial.println(bus_data);
+        // Serial.printf("Adress=");
+        // Serial.println(adress);
+        // Serial.printf("Data=");
+        // Serial.println(data);
+        }
        
+    ws2812fx.service();
     
 }

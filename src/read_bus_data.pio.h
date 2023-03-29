@@ -13,21 +13,20 @@
 // ------------- //
 
 #define read_bus_data_wrap_target 0
-#define read_bus_data_wrap 3
+#define read_bus_data_wrap 2
 
 static const uint16_t read_bus_data_program_instructions[] = {
             //     .wrap_target
     0x34af, //  0: wait   1 pin, 15              [20]
     0x202f, //  1: wait   0 pin, 15                  
     0x4000, //  2: in     pins, 32                   
-    0x9f20, //  3: push   block                  [31]
             //     .wrap
 };
 
 #if !PICO_NO_HARDWARE
 static const struct pio_program read_bus_data_program = {
     .instructions = read_bus_data_program_instructions,
-    .length = 4,
+    .length = 3,
     .origin = -1,
 };
 
@@ -40,16 +39,12 @@ static inline pio_sm_config read_bus_data_program_get_default_config(uint offset
 // this is a raw helper function for use by the user which sets up the GPIO output, and configures the SM to output on a particular pin
 void read_bus_data_program_init(PIO pio, uint sm, uint offset, uint pin)
 {
-    //  pins 0-8 are input - data bus from SAM CPU board
-    pio_sm_set_consecutive_pindirs(pio, sm, 0, 8, false);
-    //  pins 26-29 are input - adress bus from SAM CPU board
-    // pio_sm_set_consecutive_pindirs(pio, sm, 26, 4, false);
-    // pins 14-15 are input - RESET and IOSTB from SAM CPU board
-    // pio_sm_set_consecutive_pindirs(pio, sm, 14, 2, false);
+    // configure all pins as input
+    pio_sm_set_consecutive_pindirs(pio, sm, 0, 32, false);
     // configure the state machine
     pio_sm_config c = read_bus_data_program_get_default_config(offset);
-    sm_config_set_in_pins(&c, pin);  // pin 15 is the trigger IOSTB signal
-    sm_config_set_in_shift(&c, false, false, 32);
+    sm_config_set_in_pins(&c, 0);  // Pin assignment start at 0
+    sm_config_set_in_shift(&c, false, true, 32); // ISR leftward, autopush, 32 threshold
     // initialize and enable the state machine
     pio_sm_init(pio, sm, offset, &c);
     pio_sm_set_enabled(pio, sm, true);
