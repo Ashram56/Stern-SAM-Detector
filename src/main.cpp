@@ -37,12 +37,6 @@
 // Transistor assignment (not linear)
 // see https://github.com/Ashram56/Stern-SAM-Databus-Analysis/blob/main/Transistor%20to%20pin%20assignment
 
-// Specifically for Tron
-
-// Disc motor relay = Q30 = D5 / FLSH_LMP
-// Disc motor direction = Q22 = D5 / SOL_C
-
-
 #include <Arduino.h>
 #include <WS2812FX.h>
 
@@ -214,7 +208,6 @@ void loop() {
             case 1:
             Serial.printf("SOL_B=");
             Serial.println(data);
-            disc_relaydir = (data >>2) & 0x1 ;
             break;
 
             case 2:
@@ -225,7 +218,6 @@ void loop() {
             case 3:
             Serial.printf("LMP_FLSH=");
             Serial.println(data);
-            disc_on = (data >>5) & 0x1 ;
             break;
 
             case 6:
@@ -233,7 +225,9 @@ void loop() {
             Serial.println(data);
             break;
 
-              
+
+// LMP_STB and LMP_DRV are cycling all the time, RS232 buffer cannot keep up, so the next two cases are omitted
+                    
 //            case 8:
 //            Serial.printf("LMP_STB=");
 //            Serial.println(data);
@@ -247,14 +241,6 @@ void loop() {
             }
 
     }
-
-    if (disc_on=1)
-    {
-    Serial.printf("Disc Status=");
-    Serial.print(disc_on);
-    Serial.println(disc_relaydir);
-    }
-
 
 }
          
