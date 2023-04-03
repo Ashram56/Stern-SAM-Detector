@@ -17,8 +17,8 @@
 
 static const uint16_t read_bus_data_program_instructions[] = {
             //     .wrap_target
-    0x34af, //  0: wait   1 pin, 15              [20]
-    0x202f, //  1: wait   0 pin, 15                  
+    0x202f, //  0: wait   0 pin, 15                  
+    0x20af, //  1: wait   1 pin, 15                  
     0x4000, //  2: in     pins, 32                   
             //     .wrap
 };
@@ -40,7 +40,11 @@ static inline pio_sm_config read_bus_data_program_get_default_config(uint offset
 void read_bus_data_program_init(PIO pio, uint sm, uint offset, uint pin)
 {
     // configure all pins as input
-    pio_sm_set_consecutive_pindirs(pio, sm, 0, 32, false);
+    // pio_sm_set_consecutive_pindirs(pio, sm, 0, 32, false);
+// define input according to design
+pio_sm_set_consecutive_pindirs(pio, sm, 0, 8, false);
+pio_sm_set_consecutive_pindirs(pio, sm, 14, 2, false);
+pio_sm_set_consecutive_pindirs(pio, sm, 26, 4, false);
     // configure the state machine
     pio_sm_config c = read_bus_data_program_get_default_config(offset);
     sm_config_set_in_pins(&c, 0);  // Pin assignment start at 0

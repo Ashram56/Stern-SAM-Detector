@@ -26,8 +26,8 @@
 
 .program read_bus_data
 .wrap_target
-    wait 1 pin 15 [20]        ; wait for IOSTB signal to go high
-    wait 0 pin 15          ; wait for the falling edge (plus some debouncing)
+    wait 0 pin 15       ; wait for IOSTB signal to go high
+    wait 1 pin 15          ; wait for the falling edge (plus some debouncing) - at 128Mhz, 5 cycles = 39ns
     in pins, 32            ; read first all 32 pins
     // push             ; no need for push the data to the FIFO since autopush is enabled
 .wrap                     ; there's no stopping!
@@ -39,7 +39,13 @@ void read_bus_data_program_init(PIO pio, uint sm, uint offset, uint pin)
 {
 
     // configure all pins as input
-    pio_sm_set_consecutive_pindirs(pio, sm, 0, 32, false);
+    // pio_sm_set_consecutive_pindirs(pio, sm, 0, 32, false);
+
+// define input according to design
+
+pio_sm_set_consecutive_pindirs(pio, sm, 0, 8, false);
+pio_sm_set_consecutive_pindirs(pio, sm, 14, 2, false);
+pio_sm_set_consecutive_pindirs(pio, sm, 26, 4, false);
 
     // configure the state machine
     pio_sm_config c = read_bus_data_program_get_default_config(offset);
