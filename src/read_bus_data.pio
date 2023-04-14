@@ -26,8 +26,8 @@
 
 .program read_bus_data
 .wrap_target
-    wait 0 pin 15       ; wait for IOSTB signal to go high
-    wait 1 pin 15          ; wait for the falling edge (plus some debouncing) - at 128Mhz, 5 cycles = 39ns
+    wait 1 pin 15       ; wait for IOSTB signal to go high
+    wait 0 pin 15 [4]          ; wait for the falling edge (plus some debouncing) - at 128Mhz, 5 cycles = 39ns
     in pins, 32            ; read first all 32 pins
     // push             ; no need for push the data to the FIFO since autopush is enabled
 .wrap                     ; there's no stopping!
